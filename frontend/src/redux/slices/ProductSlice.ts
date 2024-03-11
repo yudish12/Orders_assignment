@@ -6,6 +6,7 @@ const productInitState:productInitStateType = {
     products:[],
     loading:false,
     totalPages:null,
+    navigate:false
 }
 
 export const getProducts = createAsyncThunk('products/get',getProductsThunk)
@@ -17,7 +18,11 @@ export const searchProduct = createAsyncThunk('products/search',searchProductThu
 const productSlice = createSlice({
     name:'product',
     initialState:productInitState,
-    reducers:{},
+    reducers:{
+        SetNavigate:(state)=>{
+            state.navigate = false;
+        }
+    },
     extraReducers:(builder)=>{
         builder.addCase(getProducts.pending,(state)=>{
             state.loading = true
@@ -29,6 +34,7 @@ const productSlice = createSlice({
         })
         builder.addCase(getProducts.rejected,(state,action)=>{
             state.error = action.error
+            state.navigate = true
             state.loading = false
         })
         builder.addCase(searchProduct.pending,(state)=>{
@@ -47,6 +53,7 @@ const productSlice = createSlice({
             state.loading = true
         })
         builder.addCase(updateProduct.fulfilled,(state)=>{
+            state.navigate = true
             alert('Product Updated Successfully')
             state.loading = false
         })
@@ -58,8 +65,10 @@ const productSlice = createSlice({
             state.loading = true
         })
         builder.addCase(createProduct.fulfilled,(state)=>{
+            state.navigate = true
             alert('Product Created Successfully')
             state.loading = false
+            
         })
         builder.addCase(createProduct.rejected,(state,action)=>{
             state.error = action.error
@@ -75,5 +84,7 @@ const productSlice = createSlice({
         })
     }
 })
+
+export const {SetNavigate} = productSlice.actions
 
 export default productSlice.reducer

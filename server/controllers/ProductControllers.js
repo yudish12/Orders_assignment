@@ -8,7 +8,7 @@ export const getAllProducts = async(req,res,next)=>{
             message:"success"
         })
     } catch (error) {
-        next(error)
+       next(new Error(error))
     }
 }
 
@@ -29,24 +29,24 @@ export const getProducts = async(req,res,next)=>{
             totalPages:Math.ceil(count/req.query.pageSize)
           });
     } catch (error) {
-        next(error)
+       next(new Error(error))
     }
 }
 
 export const createProduct = async(req,res,next)=>{
     try {
-        const {customer_name,customer_email,order_value,product} = req.body
-        if(!customer_email || !customer_name || !product || !order_value){
-            next("Missing required fields")
+        const {customer_name,customer_email,order_value,product,_id} = req.body
+        console.log(req.body)
+        if(!customer_email || !customer_name || !product || !order_value || !_id){
+            next(new Error("Missing required fields"))
         }
         const productCreated = await productModel.create(req.body);
-        console.log(productCreated)
         return res.status(200).json({
             message:"success",
             product:productCreated
         })
     } catch (error) {
-        next(error)
+       next(new Error(error))
     }
 }
 
@@ -66,7 +66,7 @@ export const searchProducts = async(req,res,next)=>{
             totalPages:Math.ceil(count/12)
         })
     } catch (error) {
-        next(error)
+       next(new Error(error))
     }
 }
 
@@ -76,7 +76,7 @@ export const updateProduct = async(req,res,next)=>{
         const _id = req.params.id;
         const {customer_name,customer_email,quantity,order_value,product} = req.body
         if(!customer_email || !customer_name || !product || !order_value || !_id){
-            next("Missing required fields")
+            next(new Error("Missing required fields"))
         }
         const data = await productModel.findByIdAndUpdate(_id,{customer_name,customer_email,quantity,order_value,product},{new:true});
         return res.status(200).json({
@@ -84,7 +84,7 @@ export const updateProduct = async(req,res,next)=>{
             product:data,
         })
     } catch (error) {
-        next(error);   
+       next(new Error(error));   
     }
     
 }
@@ -93,7 +93,7 @@ export const deleteProduct = async(req,res,next)=>{
     try {
         const {id} = req.params;
         if(!id){
-            next('Invalid product Id')
+            next(new Error('Invalid product Id'))
         }
         await productModel.findByIdAndDelete(id);
         return res.status(200).json({
@@ -101,6 +101,6 @@ export const deleteProduct = async(req,res,next)=>{
             id:id,
         })
     } catch (error) {
-        next(error)
+       next(new Error(error))
     }
 }

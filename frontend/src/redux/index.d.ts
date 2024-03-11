@@ -38,4 +38,5 @@ export type productInitStateType = {
     error?:SerializedError;
     loading:boolean;
     totalPages: number | null,
+    navigate:boolean;
 }

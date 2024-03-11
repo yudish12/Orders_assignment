@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProductType } from "../redux";
-import { useAppDispatch } from "../redux/store";
-import { createProduct } from "../redux/slices/ProductSlice";
+import { useAppDispatch, useAppSlector } from "../redux/store";
+import { SetNavigate, createProduct } from "../redux/slices/ProductSlice";
+import { useNavigate } from "react-router-dom";
 
 const Create = () => {
     const dispatch = useAppDispatch()
+    const navigate = useNavigate();
+    const {navigate:prodnavigation} = useAppSlector((state)=>state.productReducers);
     const [formData, setFormData] = useState<ProductType>({
         product: "",
         customer_email: "",
@@ -18,6 +21,14 @@ const Create = () => {
         const {name,value} = e.target;
         setFormData((prev)=>({...prev,[name]:value}))
     }
+
+
+    useEffect(()=>{
+        if(prodnavigation){
+            dispatch(SetNavigate())
+            navigate("/products");
+        }
+    },[prodnavigation])
 
 
     return (
@@ -42,12 +53,42 @@ const Create = () => {
                         <label htmlFor={key}>
                             {key.split('_').join(' ')}
                         </label>
-                        <input onChange={handleChange} className="form-input" type="text" name={key} id={key} value={(formData as never)[key]} />
+                        <input 
+                            onChange={handleChange} 
+                            className="form-input" 
+                            type={key==="customer_email"?"email":(
+                                key==="quantity" || key==="order_value"?"number":
+                                "text"
+                            )} 
+                            name={key} 
+                            id={key} 
+                            value={(formData as never)[key]} 
+                        />
                     </div>
                 )}
             </div>
             <div style={{ gridColumn: "1 / span 2", textAlign: "center", marginTop: "20px" }} className="buttons">
-                <button onClick={()=>dispatch(createProduct(formData))} style={{ fontSize: "15px", fontWeight: "600" }} className="btn" type='submit'>Submit</button>
+                <button 
+                    onClick={()=>{
+                        if(!formData.customer_email || !formData.customer_name || !formData.order_value || !formData.product){
+                            alert("Please fill required fields")
+                        }
+                        const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
+                        if(!emailRegex.test(formData.customer_email)){
+                            alert("Invalid email")
+                            return;
+                        }
+                        dispatch(createProduct(formData))
+                    }} 
+                    style={{ 
+                        fontSize: "15px", 
+                        fontWeight: "600" 
+                    }} 
+                    className="btn" 
+                    type='submit'
+                >
+                    Submit
+                </button>
             </div>
         </div>
     );

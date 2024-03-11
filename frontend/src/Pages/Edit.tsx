@@ -1,13 +1,15 @@
-import { useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { ProductType } from "../redux";
-import { useAppDispatch } from "../redux/store";
-import { updateProduct } from "../redux/slices/ProductSlice";
+import { useAppDispatch, useAppSlector } from "../redux/store";
+import { SetNavigate, updateProduct } from "../redux/slices/ProductSlice";
 
 const Edit = () => {
     const { id } = useParams();
     const { state } = useLocation();
     const dispatch = useAppDispatch()
+    const {navigate:prodNavigate} = useAppSlector((state)=>state.productReducers);
+    const navigate = useNavigate();
     const [formData, setFormData] = useState<ProductType>({
         product: state.product,
         customer_email: state.customer_email,
@@ -17,12 +19,19 @@ const Edit = () => {
         _id: state._id
     });
 
-    const handleChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
-        const {name,value} = e.target;
-        setFormData((prev)=>({...prev,[name]:value}))
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }))
     }
 
-    if(id !== state._id){
+    useEffect(()=>{
+        if(prodNavigate){
+            dispatch(SetNavigate())
+            navigate("/products")
+        }
+    },[prodNavigate])
+
+    if (id !== state._id) {
         return <div>Product Not Found</div>;
     }
 
@@ -48,12 +57,42 @@ const Edit = () => {
                         <label htmlFor={key}>
                             {key.split('_').join(' ')}
                         </label>
-                        <input onChange={handleChange} className="form-input" type="text" name={key} id={key} value={(formData as never)[key]} />
+                        <input
+                            onChange={handleChange}
+                            className="form-input"
+                            type={key === "customer_email" ? "email" : (
+                                key === "quantity" || key === "order_value" ? "number" :
+                                    "text"
+                            )}
+                            name={key}
+                            id={key}
+                            value={(formData as never)[key]}
+                        />
                     </div>
                 )}
             </div>
             <div style={{ gridColumn: "1 / span 2", textAlign: "center", marginTop: "20px" }} className="buttons">
-                <button onClick={()=>dispatch(updateProduct(formData))} style={{ fontSize: "15px", fontWeight: "600" }} className="btn" type='submit'>Submit</button>
+            <button 
+                    onClick={()=>{
+                        if(!formData.customer_email || !formData.customer_name || !formData.order_value || !formData.product){
+                            alert("Please fill required fields")
+                        }
+                        const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
+                        if(!emailRegex.test(formData.customer_email)){
+                            alert("Invalid email")
+                            return;
+                        }
+                        dispatch(updateProduct(formData))
+                    }} 
+                    style={{ 
+                        fontSize: "15px", 
+                        fontWeight: "600" 
+                    }} 
+                    className="btn" 
+                    type='submit'
+                >
+                    Submit
+                </button>
             </div>
         </div>
     );
